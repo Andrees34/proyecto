@@ -1,0 +1,166 @@
+from tkinter import *
+import random
+
+class TriviaApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Juego de Trivia")
+        self.root.geometry("700x500")
+        self.root.config(bg="lightblue")
+
+        self.indice_pregunta = 0
+        self.puntaje = 0
+        self.preguntas_actuales = []
+
+        self.temporizador = 120  # 2 minutos
+        self.temporizador_label = None
+        self.temporizador_id = None
+
+        self.banco_preguntas = {
+            "Matemáticas": [
+                {"pregunta": "¿Cuánto es 5 + 3?", "opciones": ["6", "7", "8", "9"], "respuesta": "8"},
+                {"pregunta": "¿Cuánto es 9 - 4?", "opciones": ["5", "3", "6", "7"], "respuesta": "5"},
+                {"pregunta": "¿Cuánto es 7 x 2?", "opciones": ["12", "13", "14", "15"], "respuesta": "14"},
+                {"pregunta": "¿Cuánto es 12 ÷ 4?", "opciones": ["2", "3", "4", "6"], "respuesta": "3"},
+                {"pregunta": "¿Qué número sigue: 2, 4, 6, ...?", "opciones": ["7", "8", "9", "10"], "respuesta": "8"},
+                {"pregunta": "¿Cuánto es 15 + 10?", "opciones": ["20", "25", "30", "35"], "respuesta": "25"},
+                {"pregunta": "¿Cuánto es 100 ÷ 10?", "opciones": ["5", "10", "15", "20"], "respuesta": "10"},
+                {"pregunta": "¿Cuánto es 9 x 3?", "opciones": ["24", "27", "30", "36"], "respuesta": "27"},
+                {"pregunta": "¿Cuánto es 50 - 25?", "opciones": ["20", "22", "25", "30"], "respuesta": "25"},
+                {"pregunta": "¿Qué es un número primo?", "opciones": ["1 divisor", "2 divisores", "3 divisores", "par"], "respuesta": "2 divisores"}
+            ],
+            "Ciencias Naturales": [
+                {"pregunta": "¿Qué parte del cuerpo bombea la sangre?", "opciones": ["Pulmón", "Hígado", "Corazón", "Cerebro"], "respuesta": "Corazón"},
+                {"pregunta": "¿Qué planeta es conocido como el planeta rojo?", "opciones": ["Marte", "Júpiter", "Venus", "Saturno"], "respuesta": "Marte"},
+                {"pregunta": "¿Qué gas necesitamos para respirar?", "opciones": ["Oxígeno", "Nitrógeno", "Carbono", "Hidrógeno"], "respuesta": "Oxígeno"},
+                {"pregunta": "¿Cuál es el estado del agua a 0°C?", "opciones": ["Sólido", "Líquido", "Gas", "Plasma"], "respuesta": "Sólido"},
+                {"pregunta": "¿Qué órgano produce la insulina?", "opciones": ["Estómago", "Hígado", "Páncreas", "Riñón"], "respuesta": "Páncreas"},
+                {"pregunta": "¿Cuál es el principal gas del aire?", "opciones": ["Nitrógeno", "Oxígeno", "CO2", "Helio"], "respuesta": "Nitrógeno"},
+                {"pregunta": "¿Qué animal pone huevos?", "opciones": ["Gato", "Vaca", "Gallina", "Perro"], "respuesta": "Gallina"},
+                {"pregunta": "¿Qué músculo se usa para respirar?", "opciones": ["Diafragma", "Corazón", "Cuádriceps", "Bíceps"], "respuesta": "Diafragma"},
+                {"pregunta": "¿Cuántos sentidos tiene el ser humano?", "opciones": ["5", "6", "4", "7"], "respuesta": "5"},
+                {"pregunta": "¿Qué es la fotosíntesis?", "opciones": ["Respirar", "Crecer", "Fabricar alimento", "Moverse"], "respuesta": "Fabricar alimento"}
+            ],
+            "Ciencias Sociales": [
+                {"pregunta": "¿Quién descubrió América?", "opciones": ["Simón Bolívar", "Cristóbal Colón", "Napoleón", "Washington"], "respuesta": "Cristóbal Colón"},
+                {"pregunta": "¿Qué es una democracia?", "opciones": ["Gobierno de uno", "Gobierno militar", "Gobierno del pueblo", "Dictadura"], "respuesta": "Gobierno del pueblo"},
+                {"pregunta": "¿Cuál es la capital de Colombia?", "opciones": ["Medellín", "Bogotá", "Cali", "Barranquilla"], "respuesta": "Bogotá"},
+                {"pregunta": "¿Qué continente está al sur de Europa?", "opciones": ["Asia", "África", "Oceanía", "América"], "respuesta": "África"},
+                {"pregunta": "¿Qué representan los colores de la bandera de Francia?", "opciones": ["Riquezas, sangre y mar", "Colores bonitos", "Elementos naturales", "Libertad, fraternidad e igualdad"], "respuesta": "Libertad, fraternidad e igualdad"},
+                {"pregunta": "¿Qué estudia la geografía?", "opciones": ["Números", "Países y paisajes", "Historia", "Animales"], "respuesta": "Países y paisajes"},
+                {"pregunta": "¿Cuál fue el primer presidente de Colombia?", "opciones": ["Simón Bolívar", "Santander", "Colón", "Uribe"], "respuesta": "Simón Bolívar"},
+                {"pregunta": "¿Qué es una constitución?", "opciones": ["Un mapa", "Una ley suprema", "Una comida", "Una canción"], "respuesta": "Una ley suprema"},
+                {"pregunta": "¿Dónde están las pirámides?", "opciones": ["China", "Egipto", "India", "México"], "respuesta": "Egipto"},
+                {"pregunta": "¿Quién fue el libertador?", "opciones": ["Colón", "Bolívar", "Napoleón", "Washington"], "respuesta": "Bolívar"}
+            ],
+            "Inglés": [
+                {"pregunta": "How do you say 'gato' in English?", "opciones": ["Dog", "Cat", "Mouse", "Horse"], "respuesta": "Cat"},
+                {"pregunta": "What's the color of the sun?", "opciones": ["Blue", "Yellow", "Red", "Green"], "respuesta": "Yellow"},
+                {"pregunta": "What is 'hello' in Spanish?", "opciones": ["Adiós", "Hola", "Gracias", "Perdón"], "respuesta": "Hola"},
+                {"pregunta": "What number is 'five'?", "opciones": ["3", "4", "5", "6"], "respuesta": "5"},
+                {"pregunta": "Translate 'book'", "opciones": ["Libro", "Mesa", "Casa", "Silla"], "respuesta": "Libro"},
+                {"pregunta": "What color is the grass?", "opciones": ["Red", "Green", "Blue", "Black"], "respuesta": "Green"},
+                {"pregunta": "How do you say 'agua'?", "opciones": ["Water", "Fire", "Air", "Earth"], "respuesta": "Water"},
+                {"pregunta": "What is the opposite of 'cold'?", "opciones": ["Hot", "Warm", "Cool", "Snow"], "respuesta": "Hot"},
+                {"pregunta": "Translate 'teacher'", "opciones": ["Estudiante", "Maestro", "Doctor", "Amigo"], "respuesta": "Maestro"},
+                {"pregunta": "How do you say 'niño'?", "opciones": ["Girl", "Boy", "Man", "Baby"], "respuesta": "Boy"}
+            ],
+            "Lengua Castellana": [
+                {"pregunta": "¿Qué es un sustantivo?", "opciones": ["Una acción", "Un nombre", "Un color", "Una comida"], "respuesta": "Un nombre"},
+                {"pregunta": "¿Cuál es un verbo?", "opciones": ["Comer", "Mesa", "Rojo", "Grande"], "respuesta": "Comer"},
+                {"pregunta": "¿Qué signo se usa para preguntar?", "opciones": ["¿?", "!!", "...", ",,"], "respuesta": "¿?"},
+                {"pregunta": "¿Cuál es una vocal?", "opciones": ["B", "C", "A", "T"], "respuesta": "A"},
+                {"pregunta": "¿Qué es un adjetivo?", "opciones": ["Acción", "Color", "Cualidad", "Objeto"], "respuesta": "Cualidad"},
+                {"pregunta": "¿Qué significa sinónimo?", "opciones": ["Igual", "Contrario", "Extraño", "Grande"], "respuesta": "Igual"},
+                {"pregunta": "¿Qué palabra está bien escrita?", "opciones": ["Cassa", "Casa", "Caza", "Kasa"], "respuesta": "Casa"},
+                {"pregunta": "¿Qué es un cuento?", "opciones": ["Texto narrativo", "Palabra", "Letra", "Verbo"], "respuesta": "Texto narrativo"},
+                {"pregunta": "¿Cuál es el antónimo de feliz?", "opciones": ["Alegre", "Triste", "Risa", "Rápido"], "respuesta": "Triste"},
+                {"pregunta": "¿Qué es una sílaba?", "opciones": ["Parte de una palabra", "Palabra completa", "Letra", "Texto largo"], "respuesta": "Parte de una palabra"}
+            ]
+        }
+
+        self.pantalla_inicio()
+
+    def limpiar_pantalla(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def pantalla_inicio(self):
+        self.limpiar_pantalla()
+        Label(self.root, text="Juego de Trivia", font=("Comic Sans MS", 24), bg="lightblue").pack(pady=40)
+        Button(self.root, text="Iniciar", font=("Arial", 16), command=self.menu_categorias).pack(pady=20)
+
+    def menu_categorias(self):
+        self.limpiar_pantalla()
+        Label(self.root, text="Selecciona una categoría", font=("Arial", 18), bg="lightblue").pack(pady=20)
+
+        for categoria in self.banco_preguntas.keys():
+            Button(self.root, text=categoria, font=("Arial", 14), width=30,
+                   command=lambda c=categoria: self.iniciar_trivia(c)).pack(pady=5)
+
+    def iniciar_trivia(self, categoria):
+        self.puntaje = 0
+        self.indice_pregunta = 0
+        self.temporizador = 120
+        preguntas = self.banco_preguntas[categoria]
+        random.shuffle(preguntas)
+        self.preguntas_actuales = preguntas[:10]
+        self.mostrar_pregunta()
+
+    def mostrar_pregunta(self):
+        self.limpiar_pantalla()
+        self.temporizador = 120
+
+        if self.temporizador_id:
+            self.root.after_cancel(self.temporizador_id)
+
+        if self.indice_pregunta < len(self.preguntas_actuales):
+            pregunta = self.preguntas_actuales[self.indice_pregunta]
+            Label(self.root, text=f"Pregunta {self.indice_pregunta + 1}", font=("Arial", 16), bg="lightblue").pack(pady=10)
+            Label(self.root, text=pregunta["pregunta"], font=("Arial", 14), wraplength=600, bg="lightblue").pack(pady=5)
+
+            self.temporizador_label = Label(self.root, text="", font=("Arial", 14), bg="lightblue")
+            self.temporizador_label.pack(pady=10)
+            self.actualizar_temporizador()
+
+            opciones = pregunta["opciones"]
+            random.shuffle(opciones)
+            for opcion in opciones:
+                Button(self.root, text=opcion, width=40, font=("Arial", 12),
+                       command=lambda o=opcion: self.verificar_respuesta(o)).pack(pady=5)
+        else:
+            self.mostrar_resultado()
+
+    def actualizar_temporizador(self):
+        if self.temporizador > 0:
+            min, seg = divmod(self.temporizador, 60)
+            self.temporizador_label.config(text=f"Tiempo restante: {min:02}:{seg:02}")
+            self.temporizador -= 1
+            self.temporizador_id = self.root.after(1000, self.actualizar_temporizador)
+        else:
+            self.verificar_respuesta(None)
+
+    def verificar_respuesta(self, seleccion):
+        if self.temporizador_id:
+            self.root.after_cancel(self.temporizador_id)
+
+        correcta = self.preguntas_actuales[self.indice_pregunta]["respuesta"]
+        if seleccion == correcta:
+            self.puntaje += 1
+        elif seleccion is None:
+            self.puntaje -= 1
+
+        self.indice_pregunta += 1
+        self.mostrar_pregunta()
+
+    def mostrar_resultado(self):
+        self.limpiar_pantalla()
+        Label(self.root, text="¡Juego terminado!", font=("Comic Sans MS", 22), bg="lightblue").pack(pady=30)
+        Label(self.root, text=f"Tu puntaje fue: {self.puntaje} / 10", font=("Arial", 18), bg="lightblue").pack(pady=10)
+        Button(self.root, text="Volver al inicio", font=("Arial", 14), command=self.pantalla_inicio).pack(pady=20)
+
+# Ejecutar la aplicación
+if __name__ == "__main__":
+    root = Tk()
+    app = TriviaApp(root)
+    root.mainloop()
