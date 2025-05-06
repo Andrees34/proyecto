@@ -1,0 +1,150 @@
+from tkinter import *
+import random
+
+class TriviaApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Juego de Trivia")
+        self.root.geometry("600x400")
+        self.root.config(bg="lightblue")
+
+        self.preguntas = {}
+        self.indice_pregunta = 0
+        self.puntaje = 0
+        self.preguntas_actuales = []
+
+        self.pantalla_inicio()
+
+    def limpiar_pantalla(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def pantalla_inicio(self):
+        self.limpiar_pantalla()
+
+        Label(self.root, text="Bienvenido al Juego de Trivia", font=("Comic Sans MS", 20), bg="lightblue").pack(pady=40)
+        Button(self.root, text="Iniciar", font=("Arial", 14), command=self.menu_categorias).pack(pady=20)
+
+    def menu_categorias(self):
+        self.limpiar_pantalla()
+
+        Label(self.root, text="Selecciona una categoría", font=("Comic Sans MS", 18), bg="lightblue").pack(pady=20)
+
+        categorias = [
+            "Matemáticas",
+            # Puedes agregar más categorías aquí
+        ]
+
+        for categoria in categorias:
+            Button(self.root, text=categoria, width=25, font=("Arial", 12),
+                   command=lambda c=categoria: self.iniciar_trivia(c)).pack(pady=5)
+
+    def iniciar_trivia(self, categoria):
+        self.puntaje = 0
+        self.indice_pregunta = 0
+        self.categoria = categoria
+        self.preguntas_actuales = self.cargar_preguntas(categoria)
+        self.mostrar_pregunta()
+
+    def cargar_preguntas(self, categoria):
+        banco = {
+            "Matemáticas": [
+                {
+                    "pregunta": "¿Cuánto es 5 + 3?",
+                    "opciones": ["6", "7", "8", "9"],
+                    "respuesta": "8"
+                },
+                {
+                    "pregunta": "¿Cuánto es 9 - 4?",
+                    "opciones": ["5", "3", "6", "7"],
+                    "respuesta": "5"
+                },
+                {
+                    "pregunta": "¿Cuánto es 7 x 2?",
+                    "opciones": ["12", "13", "14", "15"],
+                    "respuesta": "14"
+                },
+                {
+                    "pregunta": "¿Cuánto es 12 ÷ 4?",
+                    "opciones": ["2", "3", "4", "6"],
+                    "respuesta": "3"
+                },
+                {
+                    "pregunta": "¿Qué número sigue en la secuencia: 2, 4, 6, ...?",
+                    "opciones": ["7", "8", "9", "10"],
+                    "respuesta": "8"
+                },
+                {
+                    "pregunta": "¿Cuánto es 15 + 10?",
+                    "opciones": ["20", "25", "30", "35"],
+                    "respuesta": "25"
+                },
+                {
+                    "pregunta": "¿Cuánto es 100 ÷ 10?",
+                    "opciones": ["5", "10", "15", "20"],
+                    "respuesta": "10"
+                },
+                {
+                    "pregunta": "¿Cuánto es 9 x 3?",
+                    "opciones": ["24", "27", "30", "36"],
+                    "respuesta": "27"
+                },
+                {
+                    "pregunta": "¿Cuánto es 50 - 25?",
+                    "opciones": ["20", "22", "25", "30"],
+                    "respuesta": "25"
+                },
+                {
+                    "pregunta": "¿Qué es un número primo?",
+                    "opciones": [
+                        "Tiene solo un divisor",
+                        "Tiene 2 divisores",
+                        "Tiene muchos divisores",
+                        "Es un número par"
+                    ],
+                    "respuesta": "Tiene 2 divisores"
+                }
+            ]
+        }
+
+        preguntas_categoria = banco.get(categoria, [])
+        random.shuffle(preguntas_categoria)
+        return preguntas_categoria[:10]
+
+    def mostrar_pregunta(self):
+        self.limpiar_pantalla()
+
+        if self.indice_pregunta < len(self.preguntas_actuales):
+            pregunta_data = self.preguntas_actuales[self.indice_pregunta]
+            pregunta = pregunta_data["pregunta"]
+            opciones = pregunta_data["opciones"]
+
+            Label(self.root, text=f"Pregunta {self.indice_pregunta + 1}:", font=("Arial", 16), bg="lightblue").pack(pady=10)
+            Label(self.root, text=pregunta, font=("Arial", 14), bg="lightblue").pack(pady=10)
+
+            for opcion in opciones:
+                Button(self.root, text=opcion, width=30, font=("Arial", 12),
+                       command=lambda o=opcion: self.verificar_respuesta(o)).pack(pady=5)
+        else:
+            self.mostrar_resultado()
+
+    def verificar_respuesta(self, seleccion):
+        correcta = self.preguntas_actuales[self.indice_pregunta]["respuesta"]
+        if seleccion == correcta:
+            self.puntaje += 1
+        self.indice_pregunta += 1
+        self.mostrar_pregunta()
+
+    def mostrar_resultado(self):
+        self.limpiar_pantalla()
+        Label(self.root, text="¡Trivia finalizada!", font=("Comic Sans MS", 20), bg="lightblue").pack(pady=20)
+        Label(self.root, text=f"Respuestas correctas: {self.puntaje} de 10", font=("Arial", 16), bg="lightblue").pack(pady=10)
+
+        Button(self.root, text="Volver al inicio", font=("Arial", 14), command=self.pantalla_inicio).pack(pady=20)
+
+
+# Ejecutar la aplicación
+if __name__ == "__main__":
+    root = Tk()
+    app = TriviaApp(root)
+    root.mainloop()
