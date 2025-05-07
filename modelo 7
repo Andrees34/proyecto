@@ -1,0 +1,153 @@
+from tkinter import *
+import random
+
+class TriviaApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Juego de Trivia")
+        self.root.geometry("700x550")
+        self.root.config(bg="lightblue")
+
+        self.indice_pregunta = 0
+        self.puntaje = 0
+        self.preguntas_actuales = []
+        self.respuestas_incorrectas = []
+        self.temporizador = 120
+        self.temporizador_label = None
+        self.temporizador_id = None
+        self.categoria_actual = ""
+
+        # CATEGORÍAS
+        self.banco_preguntas = {
+            "Matemáticas": [
+                {"pregunta": "¿Cuánto es 5 + 3?", "opciones": ["6", "7", "8", "9"], "respuesta": "8", "tip": "Suma 5 y 3."},
+                {"pregunta": "¿Cuánto es 9 - 4?", "opciones": ["5", "3", "6", "7"], "respuesta": "5", "tip": "Resta 4 de 9."},
+                {"pregunta": "¿Cuánto es 7 x 2?", "opciones": ["12", "13", "14", "15"], "respuesta": "14", "tip": "Multiplica 7 por 2."},
+                {"pregunta": "¿Cuánto es 12 ÷ 4?", "opciones": ["2", "3", "4", "6"], "respuesta": "3", "tip": "Divide 12 entre 4."},
+                {"pregunta": "¿Qué número sigue: 2, 4, 6, ...?", "opciones": ["7", "8", "9", "10"], "respuesta": "8", "tip": "Secuencia de números pares."}
+            ],
+            "Ciencias Naturales": [
+                {"pregunta": "¿Qué parte del cuerpo bombea la sangre?", "opciones": ["Pulmón", "Hígado", "Corazón", "Cerebro"], "respuesta": "Corazón", "tip": "El corazón bombea sangre."},
+                {"pregunta": "¿Qué gas necesitamos para respirar?", "opciones": ["Oxígeno", "Nitrógeno", "CO2", "Helio"], "respuesta": "Oxígeno", "tip": "Necesitamos oxígeno para respirar."},
+                {"pregunta": "¿Qué planeta es conocido como el planeta rojo?", "opciones": ["Marte", "Júpiter", "Venus", "Saturno"], "respuesta": "Marte", "tip": "Marte es el planeta rojo."},
+                {"pregunta": "¿Qué es la fotosíntesis?", "opciones": ["Respirar", "Crecer", "Fabricar alimento", "Moverse"], "respuesta": "Fabricar alimento", "tip": "Las plantas fabrican su alimento con la fotosíntesis."},
+                {"pregunta": "¿Qué órgano produce la insulina?", "opciones": ["Estómago", "Hígado", "Páncreas", "Riñón"], "respuesta": "Páncreas", "tip": "La insulina se produce en el páncreas."}
+            ],
+            "Ciencias Sociales": [
+                {"pregunta": "¿Quién descubrió América?", "opciones": ["Simón Bolívar", "Cristóbal Colón", "Napoleón", "Washington"], "respuesta": "Cristóbal Colón", "tip": "Cristóbal Colón llegó en 1492."},
+                {"pregunta": "¿Qué es una democracia?", "opciones": ["Gobierno de uno", "Gobierno militar", "Gobierno del pueblo", "Dictadura"], "respuesta": "Gobierno del pueblo", "tip": "El pueblo elige en democracia."},
+                {"pregunta": "¿Qué continente está al sur de Europa?", "opciones": ["Asia", "África", "Oceanía", "América"], "respuesta": "África", "tip": "África está justo debajo de Europa."},
+                {"pregunta": "¿Dónde están las pirámides?", "opciones": ["China", "Egipto", "India", "México"], "respuesta": "Egipto", "tip": "Las pirámides más famosas están en Egipto."},
+                {"pregunta": "¿Qué estudia la geografía?", "opciones": ["Números", "Países y paisajes", "Historia", "Animales"], "respuesta": "Países y paisajes", "tip": "La geografía estudia el planeta."}
+            ],
+            "Inglés": [
+                {"pregunta": "How do you say 'gato' in English?", "opciones": ["Dog", "Cat", "Mouse", "Horse"], "respuesta": "Cat", "tip": "'Gato' se dice 'Cat'."},
+                {"pregunta": "What's the color of the sun?", "opciones": ["Blue", "Yellow", "Red", "Green"], "respuesta": "Yellow", "tip": "The sun is yellow."},
+                {"pregunta": "Translate 'book'", "opciones": ["Libro", "Mesa", "Casa", "Silla"], "respuesta": "Libro", "tip": "'Book' = 'Libro'."},
+                {"pregunta": "What number is 'five'?", "opciones": ["3", "4", "5", "6"], "respuesta": "5", "tip": "'Five' es 5."},
+                {"pregunta": "What is the opposite of 'cold'?", "opciones": ["Hot", "Warm", "Cool", "Snow"], "respuesta": "Hot", "tip": "El opuesto de 'cold' es 'hot'."}
+            ],
+            "Lengua Castellana": [
+                {"pregunta": "¿Qué es un sustantivo?", "opciones": ["Una acción", "Un nombre", "Un color", "Una comida"], "respuesta": "Un nombre", "tip": "El sustantivo nombra cosas."},
+                {"pregunta": "¿Cuál es un verbo?", "opciones": ["Comer", "Mesa", "Rojo", "Grande"], "respuesta": "Comer", "tip": "El verbo indica acción."},
+                {"pregunta": "¿Cuál es una vocal?", "opciones": ["B", "C", "A", "T"], "respuesta": "A", "tip": "Las vocales son A, E, I, O, U."},
+                {"pregunta": "¿Qué significa sinónimo?", "opciones": ["Igual", "Contrario", "Extraño", "Grande"], "respuesta": "Igual", "tip": "Significado similar."},
+                {"pregunta": "¿Cuál es el antónimo de feliz?", "opciones": ["Alegre", "Triste", "Risa", "Rápido"], "respuesta": "Triste", "tip": "Antónimo es lo contrario."}
+            ]
+        }
+
+        self.pantalla_inicio()
+
+    def limpiar_pantalla(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def pantalla_inicio(self):
+        self.limpiar_pantalla()
+        Label(self.root, text="Juego de Trivia", font=("Comic Sans MS", 24), bg="lightblue").pack(pady=40)
+        Button(self.root, text="Iniciar", font=("Arial", 16), command=self.menu_categorias).pack(pady=20)
+
+    def menu_categorias(self):
+        self.limpiar_pantalla()
+        Label(self.root, text="Selecciona una categoría", font=("Arial", 18), bg="lightblue").pack(pady=20)
+        for categoria in self.banco_preguntas.keys():
+            Button(self.root, text=categoria, font=("Arial", 14), width=30,
+                   command=lambda c=categoria: self.iniciar_trivia(c)).pack(pady=5)
+
+    def iniciar_trivia(self, categoria):
+        self.puntaje = 0
+        self.indice_pregunta = 0
+        self.temporizador = 120
+        self.respuestas_incorrectas = []
+        self.categoria_actual = categoria
+        preguntas = self.banco_preguntas[categoria]
+        random.shuffle(preguntas)
+        self.preguntas_actuales = preguntas[:5]
+        self.mostrar_pregunta()
+
+    def mostrar_pregunta(self):
+        self.limpiar_pantalla()
+        if self.temporizador_id:
+            self.root.after_cancel(self.temporizador_id)
+        if self.indice_pregunta < len(self.preguntas_actuales):
+            pregunta = self.preguntas_actuales[self.indice_pregunta]
+            Label(self.root, text=f"Pregunta {self.indice_pregunta + 1}", font=("Arial", 16), bg="lightblue").pack(pady=10)
+            Label(self.root, text=pregunta["pregunta"], font=("Arial", 14), wraplength=600, bg="lightblue").pack(pady=5)
+
+            self.temporizador_label = Label(self.root, text="", font=("Arial", 14), bg="lightblue")
+            self.temporizador_label.pack(pady=10)
+            self.actualizar_temporizador()
+
+            opciones = pregunta["opciones"]
+            random.shuffle(opciones)
+            for opcion in opciones:
+                Button(self.root, text=opcion, width=40, font=("Arial", 12),
+                       command=lambda o=opcion: self.verificar_respuesta(o)).pack(pady=5)
+        else:
+            self.mostrar_resultado()
+
+    def actualizar_temporizador(self):
+        if self.temporizador > 0:
+            min, seg = divmod(self.temporizador, 60)
+            self.temporizador_label.config(text=f"Tiempo restante: {min:02}:{seg:02}")
+            self.temporizador -= 1
+            self.temporizador_id = self.root.after(1000, self.actualizar_temporizador)
+        else:
+            self.verificar_respuesta(None)
+
+    def verificar_respuesta(self, seleccion):
+        if self.temporizador_id:
+            self.root.after_cancel(self.temporizador_id)
+
+        pregunta = self.preguntas_actuales[self.indice_pregunta]
+        correcta = pregunta["respuesta"]
+        if seleccion == correcta:
+            self.puntaje += 1
+        elif seleccion is None:
+            self.puntaje -= 1
+            self.respuestas_incorrectas.append((pregunta["pregunta"], correcta, pregunta["tip"]))
+        else:
+            self.respuestas_incorrectas.append((pregunta["pregunta"], correcta, pregunta["tip"]))
+
+        self.indice_pregunta += 1
+        self.mostrar_pregunta()
+
+    def mostrar_resultado(self):
+        self.limpiar_pantalla()
+        Label(self.root, text="¡Juego terminado!", font=("Comic Sans MS", 22), bg="lightblue").pack(pady=20)
+        Label(self.root, text=f"Puntaje final: {self.puntaje} / {len(self.preguntas_actuales)}", font=("Arial", 18), bg="lightblue").pack(pady=10)
+
+        if self.respuestas_incorrectas:
+            Label(self.root, text="Respuestas incorrectas:", font=("Arial", 16), bg="lightblue", fg="red").pack(pady=10)
+            for pregunta, correcta, tip in self.respuestas_incorrectas:
+                Label(self.root, text=f" {pregunta}\n✔ Respuesta correcta: {correcta}\n💡 Tip: {tip}",
+                      font=("Arial", 12), bg="lightblue", wraplength=650, justify=LEFT).pack(pady=5)
+
+        Button(self.root, text="Volver al inicio", font=("Arial", 14), command=self.pantalla_inicio).pack(pady=10)
+        Button(self.root, text="Elegir otra categoría", font=("Arial", 14), command=self.menu_categorias).pack(pady=10)
+
+# Ejecutar la aplicación
+if __name__ == "__main__":
+    root = Tk()
+    app = TriviaApp(root)
+    root.mainloop()
