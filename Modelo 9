@@ -1,0 +1,169 @@
+from tkinter import *
+import random
+
+# --------- CLASE BASE ---------
+# Clase base para pantallas (HERENCIA)
+class Pantalla:
+    def __init__(self, app):  # app es un OBJETO de la clase TriviaApp
+        self.app = app  # ATRIBUTO
+
+    def mostrar(self):
+        raise NotImplementedError("Este método debe ser implementado por las subclases")  # POLIMORFISMO
+
+# --------- SUBCLASE CON POLIMORFISMO ---------
+class PantallaInicio(Pantalla):  # HERENCIA
+    def mostrar(self):  # POLIMORFISMO: redefinimos el método mostrar()
+        self.app.limpiar_pantalla()
+        Label(self.app.root, text="Juego de Trivia", font=("Arial", 24), bg="lightblue").pack(pady=40)
+        Button(self.app.root, text="Iniciar", font=("Arial", 16), command=self.app.menu_categorias).pack(pady=20)
+
+# --------- SUBCLASE CON POLIMORFISMO ---------
+class PantallaResultado(Pantalla):  # HERENCIA
+    def mostrar(self):  # POLIMORFISMO
+        self.app.limpiar_pantalla()
+        Label(self.app.root, text="¡Juego terminado!", font=("Arial", 22), bg="lightblue").pack(pady=20)
+        Label(self.app.root, text=f"Puntaje final: {self.app.get_puntaje()} / {len(self.app.preguntas_actuales)}", font=("Arial", 18), bg="lightblue").pack(pady=10)
+        if self.app.respuestas_incorrectas:
+            Label(self.app.root, text="Respuestas incorrectas:", font=("Arial", 16), bg="lightblue", fg="red").pack(pady=10)
+            for pregunta, correcta, tip in self.app.respuestas_incorrectas:
+                Label(self.app.root, text=f"{pregunta}\n✔ Respuesta correcta: {correcta}\n💡 Tip: {tip}",
+                      font=("Arial", 12), bg="lightblue", wraplength=650, justify=LEFT).pack(pady=5)
+
+        Button(self.app.root, text="Volver al inicio", font=("Arial", 14), command=self.app.pantalla_inicio).pack(pady=10)
+        Button(self.app.root, text="Elegir otra categoría", font=("Arial", 14), command=self.app.menu_categorias).pack(pady=10)
+
+# --------- CLASE PRINCIPAL ---------
+class TriviaApp:
+    def __init__(self, root):  # root es un OBJETO Tk
+        self.root = root
+        self.root.title("Juego de Trivia")
+        self.root.geometry("700x550")
+        self.root.config(bg="lightblue")
+
+        # --------- ATRIBUTOS ---------
+        self.indice_pregunta = 0
+        self._puntaje = 0  # ENCAPSULAMIENTO (atributo privado con _)
+        self.preguntas_actuales = []
+        self.respuestas_incorrectas = []
+        self.temporizador = 120
+        self.temporizador_label = None
+        self.temporizador_id = None
+        self.categoria_actual = ""
+
+        # --------- BANCO DE PREGUNTAS (ATRIBUTO) ---------
+        self.banco_preguntas = {
+            "Matemáticas": [...],  # (preguntas ya estaban definidas)
+            "Ciencias Naturales": [...],  # (preguntas ya estaban definidas)
+            "Ciencias Sociales": [
+                {"pregunta": "¿Quién fue el libertador de varios países de América del Sur?", "opciones": ["Simón Bolívar", "Napoleón", "Cristóbal Colón", "San Martín"], "respuesta": "Simón Bolívar", "tip": "Fue clave en la independencia de Venezuela, Colombia y más."},
+                {"pregunta": "¿En qué continente se encuentra Egipto?", "opciones": ["Asia", "Europa", "África", "Oceanía"], "respuesta": "África", "tip": "El Nilo pasa por allí."},
+                {"pregunta": "¿Qué sistema político permite votar a los ciudadanos?", "opciones": ["Democracia", "Dictadura", "Monarquía", "Feudalismo"], "respuesta": "Democracia", "tip": "Significa 'poder del pueblo'."},
+                {"pregunta": "¿Qué es una constitución?", "opciones": ["Un himno", "Una ley fundamental", "Un país", "Una ciudad"], "respuesta": "Una ley fundamental", "tip": "Es la norma suprema de un país."},
+                {"pregunta": "¿Cuál es la capital de Colombia?", "opciones": ["Bogotá", "Medellín", "Cali", "Barranquilla"], "respuesta": "Bogotá", "tip": "Se encuentra en el centro del país."}
+            ],
+            "Inglés": [
+                {"pregunta": "What color is the sky?", "opciones": ["Red", "Green", "Blue", "Yellow"], "respuesta": "Blue", "tip": "It's the same color as the ocean."},
+                {"pregunta": "How do you say 'libro' in English?", "opciones": ["Pen", "Book", "Chair", "Map"], "respuesta": "Book", "tip": "You read it."},
+                {"pregunta": "What is the plural of 'child'?", "opciones": ["Childs", "Childes", "Children", "Child"], "respuesta": "Children", "tip": "It’s an irregular plural."},
+                {"pregunta": "Translate: 'I have a dog'", "opciones": ["Tengo un gato", "Tengo un perro", "Yo soy un perro", "Tienes un perro"], "respuesta": "Tengo un perro", "tip": "'Dog' means 'perro'."},
+                {"pregunta": "What's the opposite of 'hot'?", "opciones": ["Cold", "Warm", "Cool", "Spicy"], "respuesta": "Cold", "tip": "Think about ice."}
+            ],
+            "Lectura Crítica": [
+                {"pregunta": "¿Qué se busca al leer críticamente un texto?", "opciones": ["Memorizar", "Comprender y analizar", "Leer rápido", "Dormir"], "respuesta": "Comprender y analizar", "tip": "Ir más allá de lo literal."},
+                {"pregunta": "¿Qué es un argumento?", "opciones": ["Una pelea", "Una afirmación con soporte", "Una idea sin base", "Un resumen"], "respuesta": "Una afirmación con soporte", "tip": "Debe tener razones."},
+                {"pregunta": "¿Qué significa inferir?", "opciones": ["Copiar", "Deducir", "Ignorar", "Escuchar"], "respuesta": "Deducir", "tip": "Es leer entre líneas."},
+                {"pregunta": "¿Qué función tiene el título de un texto?", "opciones": ["Decorar", "Resumir", "Confundir", "Distraer"], "respuesta": "Resumir", "tip": "Anticipa el contenido."},
+                {"pregunta": "¿Qué es una idea principal?", "opciones": ["Un detalle", "Una anécdota", "El mensaje central", "Una conclusión"], "respuesta": "El mensaje central", "tip": "Resume el párrafo."}
+            ]
+        }
+
+        self.pantalla_inicio()  # LLAMADO A MÉTODO DESDE OBJETO
+
+    # --------- ENCAPSULAMIENTO: Métodos para acceder al puntaje ---------
+    def get_puntaje(self):
+        return self._puntaje
+
+    def set_puntaje(self, valor):
+        self._puntaje = valor
+
+    # --------- MÉTODOS DE LA APLICACIÓN ---------
+    def limpiar_pantalla(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def pantalla_inicio(self):
+        pantalla = PantallaInicio(self)  # OBJETO
+        pantalla.mostrar()
+
+    def menu_categorias(self):
+        self.limpiar_pantalla()
+        Label(self.root, text="Selecciona una categoría", font=("Arial", 18), bg="lightblue").pack(pady=20)
+        for categoria in self.banco_preguntas.keys():
+            Button(self.root, text=categoria, font=("Arial", 14), width=30,
+                   command=lambda c=categoria: self.iniciar_trivia(c)).pack(pady=5)
+
+    def iniciar_trivia(self, categoria):
+        self.set_puntaje(0)
+        self.indice_pregunta = 0
+        self.temporizador = 120
+        self.respuestas_incorrectas = []
+        self.categoria_actual = categoria
+        preguntas = self.banco_preguntas[categoria]
+        random.shuffle(preguntas)
+        self.preguntas_actuales = preguntas[:5]
+        self.mostrar_pregunta()
+
+    def mostrar_pregunta(self):
+        self.limpiar_pantalla()
+        if self.temporizador_id:
+            self.root.after_cancel(self.temporizador_id)
+
+        if self.indice_pregunta < len(self.preguntas_actuales):
+            pregunta = self.preguntas_actuales[self.indice_pregunta]
+            Label(self.root, text=f"Pregunta {self.indice_pregunta + 1}", font=("Arial", 16), bg="lightblue").pack(pady=10)
+            Label(self.root, text=pregunta["pregunta"], font=("Arial", 14), wraplength=600, bg="lightblue").pack(pady=5)
+
+            self.temporizador_label = Label(self.root, text="", font=("Arial", 14), bg="lightblue")
+            self.temporizador_label.pack(pady=10)
+            self.actualizar_temporizador()
+
+            opciones = pregunta["opciones"]
+            random.shuffle(opciones)
+            for opcion in opciones:
+                Button(self.root, text=opcion, width=40, font=("Arial", 12),
+                       command=lambda o=opcion: self.verificar_respuesta(o)).pack(pady=5)
+        else:
+            self.mostrar_resultado()
+
+    def actualizar_temporizador(self):
+        if self.temporizador > 0:
+            min, seg = divmod(self.temporizador, 60)
+            self.temporizador_label.config(text=f"Tiempo restante: {min:02}:{seg:02}")
+            self.temporizador -= 1
+            self.temporizador_id = self.root.after(1000, self.actualizar_temporizador)
+        else:
+            self.verificar_respuesta(None)
+
+    def verificar_respuesta(self, seleccion):
+        if self.temporizador_id:
+            self.root.after_cancel(self.temporizador_id)
+
+        pregunta = self.preguntas_actuales[self.indice_pregunta]
+        correcta = pregunta["respuesta"]
+        if seleccion == correcta:
+            self.set_puntaje(self.get_puntaje() + 1)
+        elif seleccion is None or seleccion != correcta:
+            self.respuestas_incorrectas.append((pregunta["pregunta"], correcta, pregunta["tip"]))
+
+        self.indice_pregunta += 1
+        self.mostrar_pregunta()
+
+    def mostrar_resultado(self):
+        pantalla = PantallaResultado(self)  # OBJETO
+        pantalla.mostrar()
+
+# --------- EJECUCIÓN PRINCIPAL ---------
+if __name__ == "__main__":
+    root = Tk()
+    app = TriviaApp(root)  # OBJETO
+    root.mainloop()
