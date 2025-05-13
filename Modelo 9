@@ -1,8 +1,8 @@
 from tkinter import *
 import random
 
-# --------- CLASE BASE ---------
-# Clase base para pantallas (HERENCIA)
+# Polimorfismo 
+
 class Pantalla:
     def __init__(self, app):  # app es un OBJETO de la clase TriviaApp
         self.app = app  # ATRIBUTO
@@ -10,15 +10,15 @@ class Pantalla:
     def mostrar(self):
         raise NotImplementedError("Este método debe ser implementado por las subclases")  # POLIMORFISMO
 
-# --------- SUBCLASE CON POLIMORFISMO ---------
-class PantallaInicio(Pantalla):  # HERENCIA
-    def mostrar(self):  # POLIMORFISMO: redefinimos el método mostrar()
+# SUBCLASE CON POLIMORFISMO 
+class PantallaInicio(Pantalla):  
+    def mostrar(self):  # POLIMORFISMO
         self.app.limpiar_pantalla()
         Label(self.app.root, text="Juego de Trivia", font=("Arial", 24), bg="lightblue").pack(pady=40)
         Button(self.app.root, text="Iniciar", font=("Arial", 16), command=self.app.menu_categorias).pack(pady=20)
 
 # --------- SUBCLASE CON POLIMORFISMO ---------
-class PantallaResultado(Pantalla):  # HERENCIA
+class PantallaResultado(Pantalla):  
     def mostrar(self):  # POLIMORFISMO
         self.app.limpiar_pantalla()
         Label(self.app.root, text="¡Juego terminado!", font=("Arial", 22), bg="lightblue").pack(pady=20)
@@ -42,7 +42,7 @@ class TriviaApp:
 
         # --------- ATRIBUTOS ---------
         self.indice_pregunta = 0
-        self._puntaje = 0  # ENCAPSULAMIENTO (atributo privado con _)
+        self._puntaje = 0  # ENCAPSULAMIENTO 
         self.preguntas_actuales = []
         self.respuestas_incorrectas = []
         self.temporizador = 120
@@ -50,10 +50,22 @@ class TriviaApp:
         self.temporizador_id = None
         self.categoria_actual = ""
 
-        # --------- BANCO DE PREGUNTAS (ATRIBUTO) ---------
+        # (ATRIBUTO) 
         self.banco_preguntas = {
-            "Matemáticas": [...],  # (preguntas ya estaban definidas)
-            "Ciencias Naturales": [...],  # (preguntas ya estaban definidas)
+            "Matemáticas": [  
+                {"pregunta": "¿Cuánto es 7 × 8?", "opciones": ["56", "48", "64", "58"], "respuesta": "56", "tip": "Piensa en la tabla del 7 o del 8."},
+                {"pregunta": "¿Cuál es el resultado de 25 ÷ 5?", "opciones": ["6", "5", "4", "3"], "respuesta": "5", "tip": "¿Cuántas veces cabe el 5 en el 25?"},
+                {"pregunta": "¿Qué tipo de ángulo mide 90 grados?", "opciones": ["Agudo", "Recto", "Obtuso", "Llano"], "respuesta": "Recto", "tip": "Forma una 'L' perfecta."},
+                {"pregunta": "¿Cuál es el número primo más pequeño?", "opciones": ["1", "2", "3", "5"], "respuesta": "2", "tip": "Es el único primo par."},
+                {"pregunta": "¿Cuánto es 12²?", "opciones": ["144", "124", "132", "120"], "respuesta": "144", "tip": "Eleva 12 al cuadrado."}
+            ],  
+            "Ciencias Naturales": [
+                {"pregunta": "¿Cuál es el planeta más cercano al Sol?", "opciones": ["Venus", "Tierra", "Mercurio", "Marte"], "respuesta": "Mercurio", "tip": "Es el más pequeño del sistema solar."},
+                {"pregunta": "¿Qué gas respiramos principalmente?", "opciones": ["Oxígeno", "Dióxido de carbono", "Nitrógeno", "Hidrógeno"], "respuesta": "Nitrógeno", "tip": "Constituye el 78% del aire."},
+                {"pregunta": "¿Qué órgano del cuerpo humano bombea sangre?", "opciones": ["Pulmones", "Hígado", "Corazón", "Estómago"], "respuesta": "Corazón", "tip": "Late constantemente."},
+                {"pregunta": "¿Cómo se llama el proceso mediante el cual las plantas hacen su alimento?", "opciones": ["Digestión", "Fotosíntesis", "Fermentación", "Evaporación"], "respuesta": "Fotosíntesis", "tip": "Involucra luz solar."},
+                {"pregunta": "¿Qué estado de la materia no tiene forma ni volumen definidos?", "opciones": ["Sólido", "Líquido", "Gas", "Plasma"], "respuesta": "Gas", "tip": "Se expande para llenar el espacio."}
+            ],#
             "Ciencias Sociales": [
                 {"pregunta": "¿Quién fue el libertador de varios países de América del Sur?", "opciones": ["Simón Bolívar", "Napoleón", "Cristóbal Colón", "San Martín"], "respuesta": "Simón Bolívar", "tip": "Fue clave en la independencia de Venezuela, Colombia y más."},
                 {"pregunta": "¿En qué continente se encuentra Egipto?", "opciones": ["Asia", "Europa", "África", "Oceanía"], "respuesta": "África", "tip": "El Nilo pasa por allí."},
@@ -85,14 +97,13 @@ class TriviaApp:
 
     def set_puntaje(self, valor):
         self._puntaje = valor
-
-    # --------- MÉTODOS DE LA APLICACIÓN ---------
+    #--------------------------------------------------------------------------
     def limpiar_pantalla(self):
         for widget in self.root.winfo_children():
             widget.destroy()
 
     def pantalla_inicio(self):
-        pantalla = PantallaInicio(self)  # OBJETO
+        pantalla = PantallaInicio(self)  
         pantalla.mostrar()
 
     def menu_categorias(self):
@@ -159,11 +170,11 @@ class TriviaApp:
         self.mostrar_pregunta()
 
     def mostrar_resultado(self):
-        pantalla = PantallaResultado(self)  # OBJETO
+        pantalla = PantallaResultado(self)  
         pantalla.mostrar()
 
 # --------- EJECUCIÓN PRINCIPAL ---------
 if __name__ == "__main__":
     root = Tk()
-    app = TriviaApp(root)  # OBJETO
+    app = TriviaApp(root)  # Objeto
     root.mainloop()
